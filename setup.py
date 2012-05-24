@@ -6,9 +6,9 @@ from distutils.core import setup
 setup(
     author = "Martin Ueding",
     author_email = "dev@martin-ueding.de",
-    description = "Gathers the most current files from the folders and creates an email with them.",
-    license = "GPL3",
-    name = "peer_review",
-    scripts = ["peer-review"],
+    description = "Wraps ``scanimage`` into a batch program",
+    license = "GPL2+",
+    name = "myscan",
+    scripts = ["myscan"],
     version = "1.0",
 )
