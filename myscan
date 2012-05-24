@@ -5,6 +5,7 @@
 
 import argparse
 import subprocess
+import datetime
 import os.path
 
 __docformat__ = "restructuredtext en"
@@ -29,18 +30,32 @@ def main():
             break
         scan(options)
 
+last_time = -1;
+
 def scan(options):
     command = [
         "scanimage",
         "--format=tiff",
         "--mode=color" if options.color else "--mode=gray",
-        ">",
-        next_name(options),
+        #">",
+        #next_name(options),
     ]
 
-    print "Scanning with ``{command}``.".format(command=' '.join(command))
-    #subprocess.check_call(command, shell=True)
-    print "Done."
+    filename = next_name(options)
+    print "Scanning with ``{command}`` into {filename}.".format(
+        command=' '.join(command),
+        filename=filename,
+    )
+
+    start = datetime.datetime.now()
+    with open(filename, "w") as outfile:
+        subprocess.check_call(command, stdout=outfile)
+    end = datetime.datetime.now()
+    duration = (end-start).seconds
+    last_time = duration;
+
+    print "Done. That took {time} seconds.".format(time=duration)
+
     print
 
 
@@ -51,6 +66,7 @@ def next_name(options):
         name = options.pattern.format(number=number)
         if not os.path.isfile(name):
             break
+        number += 1
 
     return name
 
