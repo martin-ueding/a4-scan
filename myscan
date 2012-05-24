@@ -4,9 +4,11 @@
 # Copyright (c) 2012 Martin Ueding <dev@martin-ueding.de>
 
 import argparse
-import subprocess
 import datetime
 import os.path
+import subprocess
+import threading
+import time
 
 __docformat__ = "restructuredtext en"
 
@@ -30,31 +32,26 @@ def main():
             break
         scan(options)
 
-last_time = -1;
+last_time = 51;
 
 def scan(options):
-    command = [
-        "scanimage",
-        "--format=tiff",
-        "--mode=color" if options.color else "--mode=gray",
-        #">",
-        #next_name(options),
-    ]
+    timethread = TimeThread()
 
-    filename = next_name(options)
-    print "Scanning with ``{command}`` into {filename}.".format(
-        command=' '.join(command),
-        filename=filename,
-    )
+    timethread.start()
 
-    start = datetime.datetime.now()
-    with open(filename, "w") as outfile:
-        subprocess.check_call(command, stdout=outfile)
-    end = datetime.datetime.now()
-    duration = (end-start).seconds
-    last_time = duration;
+    scanthread = ScanThread(options)
 
-    print "Done. That took {time} seconds.".format(time=duration)
+    scanthread.start()
+
+
+    scanthread.join()
+
+    timethread.kill()
+
+    timethread.join()
+
+
+    print "Done. That took {time} seconds.".format(time=last_time)
 
     print
 
@@ -69,6 +66,50 @@ def next_name(options):
         number += 1
 
     return name
+
+class ScanThread(threading.Thread):
+    def __init__(self, options, *args, **kw):
+        super(ScanThread, self).__init__(*args, **kw)
+        self.options = options
+
+
+    def run(self):
+        filename = next_name(self.options)
+        command = [
+            "scanimage",
+            "--format=tiff",
+            "--mode=color" if self.options.color else "--mode=gray",
+        ]
+
+        print "Scanning with ``{command}`` into {filename}.".format(
+            command=' '.join(command),
+            filename=filename,
+        )
+
+        start = datetime.datetime.now()
+        with open(filename, "w") as outfile:
+            subprocess.check_call(command, stdout=outfile)
+        end = datetime.datetime.now()
+        duration = (end-start).seconds
+        global last_time
+        last_time = duration
+
+
+class TimeThread(threading.Thread):
+    def run(self):
+        self.stay_alive = True
+
+        start = datetime.datetime.now()
+
+        while self.stay_alive:
+            current = datetime.datetime.now()
+            print last_time - (current-start).seconds
+
+            time.sleep(1)
+
+    def kill(self):
+        self.stay_alive = False
+        print
 
 
 def _parse_args():
