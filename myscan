@@ -87,12 +87,16 @@ class ScanThread(threading.Thread):
         )
 
         start = datetime.datetime.now()
-        with open(filename, "w") as outfile:
-            subprocess.check_call(command, stdout=outfile)
-        end = datetime.datetime.now()
-        duration = (end-start).seconds
-        global last_time
-        last_time = duration
+        try:
+            with open(filename, "w") as outfile:
+                subprocess.check_call(command, stdout=outfile)
+        except CalledProcessError as e:
+            os.remove(filename)
+        else:
+            end = datetime.datetime.now()
+            duration = (end-start).seconds
+            global last_time
+            last_time = duration
 
 
 class TimeThread(threading.Thread):
@@ -102,10 +106,9 @@ class TimeThread(threading.Thread):
         start = datetime.datetime.now()
 
         while self.stay_alive:
+            time.sleep(1)
             current = datetime.datetime.now()
             print last_time - (current-start).seconds
-
-            time.sleep(1)
 
     def kill(self):
         self.stay_alive = False
