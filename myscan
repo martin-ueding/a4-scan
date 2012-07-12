@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 2012 Martin Ueding <dev@martin-ueding.de>
+# Copyright © 2012 Martin Ueding <dev@martin-ueding.de>
 
 import argparse
 import datetime
@@ -34,28 +34,6 @@ def main():
 
 last_time = 51;
 
-def scan(options):
-    timethread = TimeThread()
-
-    timethread.start()
-
-    scanthread = ScanThread(options)
-
-    scanthread.start()
-
-
-    scanthread.join()
-
-    timethread.kill()
-
-    timethread.join()
-
-
-    print "Done. That took {time} seconds.".format(time=last_time)
-
-    print
-
-
 def next_name(options):
     number = 1
     name = ""
@@ -67,53 +45,30 @@ def next_name(options):
 
     return name
 
-class ScanThread(threading.Thread):
-    def __init__(self, options, *args, **kw):
-        super(ScanThread, self).__init__(*args, **kw)
-        self.options = options
+def scan(options):
+    filename = next_name(options)
+    command = [
+        "scanimage",
+        "--format=tiff",
+        "--mode=color" if options.color else "--mode=gray",
+    ]
 
+    print "Scanning with ``{command}`` into {filename}.".format(
+        command=' '.join(command),
+        filename=filename,
+    )
 
-    def run(self):
-        filename = next_name(self.options)
-        command = [
-            "scanimage",
-            "--format=tiff",
-            "--mode=color" if self.options.color else "--mode=gray",
-        ]
-
-        print "Scanning with ``{command}`` into {filename}.".format(
-            command=' '.join(command),
-            filename=filename,
-        )
-
-        start = datetime.datetime.now()
-        try:
-            with open(filename, "w") as outfile:
-                subprocess.check_call(command, stdout=outfile)
-        except CalledProcessError as e:
-            os.remove(filename)
-        else:
-            end = datetime.datetime.now()
-            duration = (end-start).seconds
-            global last_time
-            last_time = duration
-
-
-class TimeThread(threading.Thread):
-    def run(self):
-        self.stay_alive = True
-
-        start = datetime.datetime.now()
-
-        while self.stay_alive:
-            time.sleep(1)
-            current = datetime.datetime.now()
-            print last_time - (current-start).seconds
-
-    def kill(self):
-        self.stay_alive = False
-        print
-
+    start = datetime.datetime.now()
+    try:
+        with open(filename, "w") as outfile:
+            subprocess.check_call(command, stdout=outfile)
+    except CalledProcessError as e:
+        os.remove(filename)
+    else:
+        end = datetime.datetime.now()
+        duration = (end-start).seconds
+        global last_time
+        last_time = duration
 
 def _parse_args():
     """
@@ -126,10 +81,8 @@ def _parse_args():
     parser.add_argument("--color", dest="color", action="store_true", help="Switch to color")
     parser.add_argument("--resolution", dest="resolution", type=int, default=300, help="Scan resolution")
     parser.add_argument("--pattern", dest="pattern", type=str, default="{number:03d}.tiff", help="Name pattern")
-    #parser.add_argument('--version', action='version', version='<the version>')
 
     return parser.parse_args()
-
 
 if __name__ == "__main__":
     main()
