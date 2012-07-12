@@ -58,7 +58,6 @@ def scan(options):
         filename=filename,
     )
 
-    start = datetime.datetime.now()
     try:
         with open(filename, "w") as outfile:
             subprocess.check_call(command, stdout=outfile)
