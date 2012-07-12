@@ -64,7 +64,7 @@ def scan(options):
     try:
         with open(filename, "w") as outfile:
             subprocess.check_call(command, stdout=outfile)
-    except CalledProcessError as e:
+    except subprocess.CalledProcessError as e:
         os.remove(filename)
     else:
         end = datetime.datetime.now()
