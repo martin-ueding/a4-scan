@@ -63,6 +63,7 @@ def scan(options):
         with open(filename, "w") as outfile:
             subprocess.check_call(command, stdout=outfile)
     except subprocess.CalledProcessError as e:
+        print e
         os.remove(filename)
 
 def _parse_args():
