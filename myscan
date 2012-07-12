@@ -46,6 +46,8 @@ def scan(options):
         "-y 297",
     ]
 
+    global printed_command
+
     if not printed_command:
         print "{command} > {filename}".format(
             command=' '.join(command),
