@@ -13,18 +13,6 @@ __docformat__ = "restructuredtext en"
 def main():
     options = _parse_args()
 
-    print """Options
-=======
-"""
-
-    if options.color:
-        print "- color"
-    else:
-        print "- grayscale"
-
-    print "-", options.resolution, "DPI"
-    print
-
     while True:
         scan(options)
 
