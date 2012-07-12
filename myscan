@@ -10,6 +10,8 @@ import sys
 
 __docformat__ = "restructuredtext en"
 
+printed_command = False
+
 def main():
     options = _parse_args()
 
@@ -44,10 +46,13 @@ def scan(options):
         "-y 297",
     ]
 
-    print "{command} > {filename}".format(
-        command=' '.join(command),
-        filename=filename,
-    )
+    if not printed_command:
+        print "{command} > {filename}".format(
+            command=' '.join(command),
+            filename=filename,
+        )
+
+        printed_command = True
 
     ask()
 
