@@ -53,7 +53,7 @@ def scan(options):
         "--mode=color" if options.color else "--mode=gray",
     ]
 
-    print "Scanning with ``{command}`` into {filename}.".format(
+    print "Scanning with “{command}” into “{filename}”.".format(
         command=' '.join(command),
         filename=filename,
     )
