@@ -6,6 +6,7 @@
 import argparse
 import os.path
 import subprocess
+import sys
 
 __docformat__ = "restructuredtext en"
 
@@ -25,13 +26,6 @@ def main():
     print
 
     while True:
-        try:
-            if len(raw_input("Press Enter to scan, enter anything to abort.").strip()) != 0:
-                break
-        except KeyboardInterrupt:
-            # The user pressed CTRL-C, so we just quit here, leaving the terminal with a new line.
-            print
-            break
         scan(options)
 
 def next_name(options):
@@ -57,15 +51,17 @@ def scan(options):
         "scanimage",
         "--format=tiff",
         "--mode={mode}".format(mode="color" if options.color else "gray"),
-        "--resolution {resolution}".format(resolution=options.resolution),
+        "--resolution={resolution}".format(resolution=options.resolution),
         "-x 210",
         "-y 297",
     ]
 
-    print "Scanning with “{command}” into “{filename}”.".format(
+    print "{command} > {filename}".format(
         command=' '.join(command),
         filename=filename,
     )
+
+    ask()
 
     try:
         with open(filename, "w") as outfile:
@@ -73,6 +69,20 @@ def scan(options):
     except subprocess.CalledProcessError as e:
         print e
         os.remove(filename)
+
+def ask():
+    """
+    Asks the user whether he wants to continue. If not, the program is exited
+    right here.
+    """
+    try:
+        user_input = raw_input("continue? [Y/n] ").strip()
+        if any(map(lambda char: user_input == char, ["n", "N"])):
+            sys.exit(0)
+    except KeyboardInterrupt:
+        # The user pressed CTRL-C, so we just quit here, leaving the terminal with a new line.
+        print
+        sys.exit(0)
 
 def _parse_args():
     """
