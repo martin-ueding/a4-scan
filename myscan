@@ -46,11 +46,20 @@ def next_name(options):
     return name
 
 def scan(options):
+    """
+    The ``options`` argument should contain the following:
+
+    - color (bool)
+    - resolution (int)
+    """
     filename = next_name(options)
     command = [
         "scanimage",
         "--format=tiff",
-        "--mode=color" if options.color else "--mode=gray",
+        "--mode={mode}".format(mode="color" if options.color else "gray"),
+        "--resolution {resolution}".format(resolution=options.resolution),
+        "-x 210",
+        "-y 297",
     ]
 
     print "Scanning with “{command}” into “{filename}”.".format(
