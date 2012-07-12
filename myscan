@@ -66,11 +66,6 @@ def scan(options):
             subprocess.check_call(command, stdout=outfile)
     except subprocess.CalledProcessError as e:
         os.remove(filename)
-    else:
-        end = datetime.datetime.now()
-        duration = (end-start).seconds
-        global last_time
-        last_time = duration
 
 def _parse_args():
     """
