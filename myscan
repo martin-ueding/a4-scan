@@ -7,7 +7,6 @@ import argparse
 import datetime
 import os.path
 import subprocess
-import threading
 import time
 
 __docformat__ = "restructuredtext en"
@@ -28,11 +27,14 @@ def main():
     print
 
     while True:
-        if len(raw_input("Press Enter to scan, enter anything to abort.").strip()) != 0:
+        try:
+            if len(raw_input("Press Enter to scan, enter anything to abort.").strip()) != 0:
+                break
+        except KeyboardInterrupt:
+            # The user pressed CTRL-C, so we just quit here, leaving the terminal with a new line.
+            print
             break
         scan(options)
-
-last_time = 51;
 
 def next_name(options):
     number = 1
