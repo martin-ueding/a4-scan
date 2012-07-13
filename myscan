@@ -59,11 +59,20 @@ def scan(options):
     ask()
 
     try:
-        with open(filename, "w") as outfile:
-            subprocess.check_call(command, stdout=outfile)
-    except subprocess.CalledProcessError as e:
-        print e
+        run_scan(command, filename)
+    except subprocess.CalledProcessError as e1:
         os.remove(filename)
+        try:
+            print "Oops, there was a glitch. Trying again …"
+            run_scan(command, filename)
+        except subprocess.CalledProcessError as e2:
+            print "Okay, no way to recover. Here are the errors:"
+            print "Error 1:", e1
+            print "Error 2:", e2
+
+def run_scan(command, filename):
+    with open(filename, "w") as outfile:
+        subprocess.check_call(command, stdout=outfile)
 
 def ask():
     """
