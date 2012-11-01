@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 # Copyright © 2012 Martin Ueding <dev@martin-ueding.de>
@@ -65,10 +65,10 @@ def scan(options):
     global printed_command
 
     if not printed_command:
-        print "{command} > {filename}".format(
+        print("{command} > {filename}".format(
             command=' '.join(command),
             filename=filename,
-        )
+        ))
 
         printed_command = True
 
@@ -79,12 +79,12 @@ def scan(options):
     except subprocess.CalledProcessError as e1:
         os.remove(filename)
         try:
-            print "Oops, there was a glitch. Trying again …"
+            print("Oops, there was a glitch. Trying again …")
             run_scan(command, filename)
         except subprocess.CalledProcessError as e2:
-            print "Okay, no way to recover. Here are the errors:"
-            print "Error 1:", e1
-            print "Error 2:", e2
+            print("Okay, no way to recover. Here are the errors:")
+            print("Error 1:", e1)
+            print("Error 2:", e2)
 
 def run_scan(command, filename):
     with open(filename, "w") as outfile:
@@ -96,12 +96,12 @@ def ask():
     right here.
     """
     try:
-        user_input = raw_input("continue? [Y/n] ").strip()
-        if any(map(lambda char: user_input == char, ["n", "N"])):
+        user_input = input("continue? [Y/n] ").strip()
+        if any([user_input == char for char in ["n", "N"]]):
             sys.exit(0)
     except KeyboardInterrupt:
         # The user pressed CTRL-C, so we just quit here, leaving the terminal with a new line.
-        print
+        print()
         sys.exit(0)
 
 def _parse_args():
