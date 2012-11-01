@@ -7,7 +7,6 @@ install:
 	install -d "$(DESTDIR)/usr/bin/"
 	install a4-scan -t "$(DESTDIR)/usr/bin/"
 
-
 .PHONY: clean
 clean:
 	$(RM) *.class *.jar
