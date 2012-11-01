@@ -27,6 +27,8 @@ _printed_command = False
 """
 Whether the command was already printed out. This is just for use within this
 module.
+
+:type: bool
 """
 
 def main():
@@ -39,6 +41,16 @@ def main():
             scan(options)
 
 def next_name(options):
+    """
+    Generates the next file name. It will increase the number until there is no
+    file named like that. That will, it will choose the lowest possible number
+    at all times.
+
+    This is not an atomic operation, so this is not concurrency safe.
+
+    :return: Next file name.
+    :rtype: str
+    """
     number = 1
     name = ""
     while True:
@@ -55,6 +67,8 @@ def scan(options):
 
     - color (bool)
     - resolution (int)
+
+    :rtype: None
     """
     filename = next_name(options)
     command = [
@@ -92,6 +106,16 @@ def scan(options):
             print("Error 2:", e2)
 
 def run_scan(command, filename):
+    """
+    Runs the scan command.
+
+
+    :param command: Scan command.
+    :type command: str
+    :param filename: Where to save the scanned file.
+    :type filename: str
+    :rtype: None
+    """
     with open(filename, "w") as outfile:
         subprocess.check_call(command, stdout=outfile)
 
