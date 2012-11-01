@@ -72,7 +72,8 @@ def scan(options):
 
         printed_command = True
 
-    ask()
+    if not options.yes:
+        ask()
 
     try:
         run_scan(command, filename)
