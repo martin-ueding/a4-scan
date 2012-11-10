@@ -132,7 +132,8 @@ def ask():
         if any([user_input == char for char in ["n", "N"]]):
             sys.exit(0)
     except KeyboardInterrupt:
-        # The user pressed CTRL-C, so we just quit here, leaving the terminal with a new line.
+        # The user pressed CTRL-C, so we just quit here, leaving the terminal
+        # with a new line.
         print()
         sys.exit(0)
 
