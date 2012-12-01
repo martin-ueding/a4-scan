@@ -137,6 +137,13 @@ def ask():
         print()
         sys.exit(0)
 
+def post_process(filename, options):
+    """
+    Applies post processing to a file. ``scanimage`` will produce TIFF files
+    which I do not use a lit. I usually use JPEG or PDF files. This method will
+    apply contrast levels and rescale the image.
+    """
+
 def _parse_args():
     """
     Parses the command line arguments.
@@ -146,8 +153,9 @@ def _parse_args():
     """
     parser = argparse.ArgumentParser(usage="", description="")
     parser.add_argument("--color", dest="color", action="store_true", help="Switch to color")
-    parser.add_argument("--resolution", dest="resolution", type=int, default=300, help="Scan resolution")
+    parser.add_argument("--oversample", dest="oversample", action="store_true", help="Will scan with twice the resolution and rescale the image for better results.")
     parser.add_argument("--pattern", dest="pattern", type=str, default="{number:03d}.tiff", help="Name pattern")
+    parser.add_argument("--resolution", dest="resolution", type=int, default=300, help="Scan resolution")
     parser.add_argument("-y", dest="yes", action="store_true", help="Scan a single document right away")
 
     return parser.parse_args()
