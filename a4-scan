@@ -148,10 +148,11 @@ def post_process(filename, options):
     # convert 003.tiff -level 9%,85% -resize 50% -quality 90 003.jpg
 
     # Build up the ``convert`` command.
-    # Start a second thread or process with calls ``convert``.
     command_parts = ["convert", filename]
 
     basename = re.sub(r"\.tiff", "", filename)
+
+    command_parts += ["-level", options.level]
 
     if options.oversample:
         command_parts += ["-resize", "{res}%".format(int(100/options.factor))]
@@ -160,6 +161,8 @@ def post_process(filename, options):
         command_parts += ["{basename}.pdf".format(basename)]
     else:
         command_parts += ["-quality", str(options.quality), "{basename}.jpg".format(basename)]
+
+    # Start a second thread or process with calls ``convert``.
 
 def _parse_args():
     """
@@ -170,12 +173,13 @@ def _parse_args():
     """
     parser = argparse.ArgumentParser(description="Wrapper for ``scanimage`` that recovers from glitches, automatically numbers file and can do some post processing.")
     parser.add_argument("--color", dest="color", action="store_true", help="Switch to color")
-    parser.add_argument("--oversample", dest="oversample", action="store_true", help="Will scan with twice the resolution and rescale the image for better results.")
     parser.add_argument("--factor", dest="factor", type=int, default=2, help="Oversampling factor [default: %(default)s]")
+    parser.add_argument("--level", dest="level", type=str, default="9%,85%", help="Level option for ``convert -level`` [default: %(default)s]")
+    parser.add_argument("--oversample", dest="oversample", action="store_true", help="Will scan with twice the resolution and rescale the image for better results.")
     parser.add_argument("--pattern", dest="pattern", type=str, default="{number:03d}.tiff", help="Name pattern [default: %(default)s]")
     parser.add_argument("--pdf", dest="pdf", action="store_true", help="Convert scanned image into PDF afterwards.")
-    parser.add_argument("--resolution", dest="resolution", type=int, default=300, help="Scan resolution")
     parser.add_argument("--quality", dest="quality", type=int, default=90, help="JPEG quality in %% [default: %(default)s].")
+    parser.add_argument("--resolution", dest="resolution", type=int, default=300, help="Scan resolution")
     parser.add_argument("-y", dest="yes", action="store_true", help="Scan a single document right away")
 
     return parser.parse_args()
