@@ -24,6 +24,7 @@ import os.path
 import re
 import subprocess
 import sys
+import threading
 
 __docformat__ = "restructuredtext en"
 
@@ -37,7 +38,6 @@ module.
 
 def main():
     options = _parse_args()
-    post_process("001.tiff", options)
 
     if options.yes:
         scan(options)
@@ -75,12 +75,13 @@ def scan(options):
 
     :rtype: None
     """
+    resolution = options.factor * options.resolution if options.oversample else options.resolution
     filename = next_name(options)
     command = [
         "scanimage",
         "--format=tiff",
         "--mode={mode}".format(mode="color" if options.color else "gray"),
-        "--resolution={resolution}".format(resolution=options.resolution),
+        "--resolution={resolution}".format(resolution=resolution),
         "-x 210",
         "-y 297",
     ]
@@ -98,17 +99,25 @@ def scan(options):
     if not options.yes:
         ask()
 
-    try:
-        run_scan(command, filename)
-    except subprocess.CalledProcessError as e1:
-        os.remove(filename)
+    errors = []
+    for trial in range(2):
         try:
-            print("Oops, there was a glitch. Trying again …")
             run_scan(command, filename)
-        except subprocess.CalledProcessError as e2:
-            print("Okay, no way to recover. Here are the errors:")
-            print("Error 1:", e1)
-            print("Error 2:", e2)
+        except subprocess.CalledProcessError as e:
+            os.remove(filename)
+            errors.append(e)
+
+            if trial == 0:
+                print("Oops, there was a glitch. Trying again …")
+            else:
+                print("Okay, no way to recover. Here are the errors:")
+                for error in errors:
+                    print(error)
+        else:
+            if options.postprocess or options.oversample:
+                thread = PostProcess(filename, options)
+                thread.start()
+            break
 
 def run_scan(command, filename):
     """
@@ -139,33 +148,47 @@ def ask():
         print()
         sys.exit(0)
 
-def post_process(filename, options):
-    """
-    Applies post processing to a file. ``scanimage`` will produce TIFF files
-    which I do not use a lit. I usually use JPEG or PDF files. This method will
-    apply contrast levels and rescale the image.
-    """
+class PostProcess(threading.Thread):
+    def __init__(self, filename, options):
+        self.filename = filename
+        self.options = options
 
-    # convert 003.tiff -level 9%,85% -resize 50% -quality 90 003.jpg
+    def run(self):
+        """
+        Applies post processing to a file. ``scanimage`` will produce TIFF files
+        which I do not use a lit. I usually use JPEG or PDF files. This method will
+        apply contrast levels and rescale the image.
+        """
 
-    # Build up the ``convert`` command.
-    command_parts = ["convert", filename]
+        # convert 003.tiff -level 9%,85% -resize 50% -quality 90 003.jpg
 
-    basename = re.sub(r"\.tiff?$", "", filename)
+        # Build up the ``convert`` command.
+        command_parts = ["convert", self.filename]
 
-    command_parts += ["-level", options.level]
+        basename = re.sub(r"\.tiff?$", "", self.filename)
 
-    if options.oversample:
-        command_parts += ["-resize", "{res}%".format(res=int(100/options.factor))]
+        command_parts += ["-level", self.options.level]
 
-    if options.pdf:
-        command_parts += ["{basename}.pdf".format(basename=basename)]
-    else:
-        command_parts += ["-quality", str(options.quality), "{basename}.jpg".format(basename=basename)]
 
-    print(' '.join(command_parts))
+        if self.options.oversample:
+            command_parts += ["-resize", "{res}%".format(res=int(100/self.options.factor))]
 
-    # Start a second thread or process with calls ``convert``.
+        if self.options.pdf:
+            outfile = "{basename}.pdf".format(basename=basename)
+            command_parts += [outfile]
+        else:
+            outfile = "{basename}.jpg".format(basename=basename)
+            command_parts += ["-quality", str(self.options.quality), outfile]
+
+        print(outfile)
+
+        print(' '.join(command_parts))
+
+        try:
+            subprocess.check_call(command_parts)
+        except subprocess.CalledProcessError as e:
+            print(e)
+            shutil.remove(outfile)
 
 def _parse_args():
     """
@@ -178,7 +201,8 @@ def _parse_args():
     parser.add_argument("--color", dest="color", action="store_true", help="Switch to color")
     parser.add_argument("--factor", dest="factor", type=int, default=2, help="Oversampling factor [default: %(default)s]")
     parser.add_argument("--level", dest="level", type=str, default="9%,85%", help="Level option for ``convert -level`` [default: %(default)s]")
-    parser.add_argument("--oversample", dest="oversample", action="store_true", help="Will scan with twice the resolution and rescale the image for better results.")
+    parser.add_argument("-s", "--oversample", dest="oversample", action="store_true", help="Will scan with twice the resolution and rescale the image for better results.")
+    parser.add_argument("-p", "--postprocess", dest="postprocess", action="store_true", help="Enable post processing")
     parser.add_argument("--pattern", dest="pattern", type=str, default="{number:03d}.tiff", help="Name pattern [default: %(default)s]")
     parser.add_argument("--pdf", dest="pdf", action="store_true", help="Convert scanned image into PDF afterwards.")
     parser.add_argument("--quality", dest="quality", type=int, default=90, help="JPEG quality in %% [default: %(default)s].")
