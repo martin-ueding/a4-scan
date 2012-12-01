@@ -160,9 +160,6 @@ class PostProcess(threading.Thread):
         which I do not use a lit. I usually use JPEG or PDF files. This method will
         apply contrast levels and rescale the image.
         """
-
-        # convert 003.tiff -level 9%,85% -resize 50% -quality 90 003.jpg
-
         # Build up the ``convert`` command.
         command_parts = ["convert", self.filename]
 
