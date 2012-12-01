@@ -163,7 +163,7 @@ class PostProcess(threading.Thread):
         # Build up the ``convert`` command.
         command_parts = ["convert", self.filename]
 
-        basename = re.sub(r"\.tiff?$", "", self.filename)
+        basename, ext = os.path.splitext(self.filename)
 
         command_parts += ["-level", self.options.level]
 
