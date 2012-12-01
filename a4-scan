@@ -167,7 +167,6 @@ class PostProcess(threading.Thread):
 
         command_parts += ["-level", self.options.level]
 
-
         if self.options.oversample:
             command_parts += ["-resize", "{res}%".format(res=int(100/self.options.factor))]
 
