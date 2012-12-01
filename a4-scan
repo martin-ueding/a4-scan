@@ -37,6 +37,7 @@ module.
 
 def main():
     options = _parse_args()
+    post_process("001.tiff", options)
 
     if options.yes:
         scan(options)
@@ -150,17 +151,19 @@ def post_process(filename, options):
     # Build up the ``convert`` command.
     command_parts = ["convert", filename]
 
-    basename = re.sub(r"\.tiff", "", filename)
+    basename = re.sub(r"\.tiff?$", "", filename)
 
     command_parts += ["-level", options.level]
 
     if options.oversample:
-        command_parts += ["-resize", "{res}%".format(int(100/options.factor))]
+        command_parts += ["-resize", "{res}%".format(res=int(100/options.factor))]
 
     if options.pdf:
-        command_parts += ["{basename}.pdf".format(basename)]
+        command_parts += ["{basename}.pdf".format(basename=basename)]
     else:
-        command_parts += ["-quality", str(options.quality), "{basename}.jpg".format(basename)]
+        command_parts += ["-quality", str(options.quality), "{basename}.jpg".format(basename=basename)]
+
+    print(' '.join(command_parts))
 
     # Start a second thread or process with calls ``convert``.
 
