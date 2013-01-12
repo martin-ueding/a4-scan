@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-# Copyright © 2012 Martin Ueding <dev@martin-ueding.de>
+# Copyright © 2012-2013 Martin Ueding <dev@martin-ueding.de>
 
 ###############################################################################
 #                              License (GPL 2+)                               #
@@ -195,10 +195,6 @@ class PostProcess(threading.Thread):
         else:
             outfile = "{basename}.jpg".format(basename=basename)
             command_parts += ["-quality", str(self.options.quality), outfile]
-
-        print(outfile)
-
-        print(' '.join(command_parts))
 
         try:
             subprocess.check_call(command_parts)
