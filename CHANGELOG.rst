@@ -1,0 +1,27 @@
+.. Copyright © 2013 Martin Ueding <dev@martin-ueding.de>
+
+#########
+CHANGELOG
+#########
+
+v2.1.3
+    - Add GPL ``copying.rst``
+
+v2.1.2
+    - Add manual page
+
+v2.1.1
+    - Remove debug output
+
+v2.1
+    - Add --level option, sort options, move comment
+
+v2.0
+    - Use Python 3
+    - New ``-y`` switch for a single, quick scan
+
+v1.1
+    - Makefile instead of setup.py
+
+v1.0
+    - Initial release
