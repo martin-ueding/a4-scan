@@ -182,6 +182,7 @@ class PostProcess(threading.Thread):
 
         try:
             subprocess.check_call(command_parts)
+            os.unlink(self.filename)
         except subprocess.CalledProcessError as e:
             print(e)
             shutil.remove(outfile)
