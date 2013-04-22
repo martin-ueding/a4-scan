@@ -9,6 +9,8 @@ file and can do some post processing.
 """
 
 import argparse
+import datetime
+import os
 import os.path
 import re
 import subprocess
@@ -45,15 +47,8 @@ def next_name(options):
     :return: Next file name.
     :rtype: str
     """
-    number = 1
-    name = ""
-    while True:
-        name = options.pattern.format(number=number)
-        if not os.path.isfile(name):
-            break
-        number += 1
-
-    return name
+    d = datetime.datetime.now()
+    return "Scan-{}.tiff".format(d.isoformat("T"))
 
 def scan(options):
     """
@@ -200,7 +195,6 @@ def _parse_args():
     parser.add_argument("--level", dest="level", type=str, default="9%,85%", help="Level option for ``convert -level`` [default: %(default)s]")
     parser.add_argument("-s", "--oversample", dest="oversample", action="store_true", help="Will scan with twice the resolution and rescale the image for better results. This also activates ``--postprocess``.")
     parser.add_argument("-p", "--postprocess", dest="postprocess", action="store_true", help="Enable post processing")
-    parser.add_argument("--pattern", dest="pattern", type=str, default="{number:03d}.tiff", help="Name pattern [default: %(default)s]")
     parser.add_argument("--pdf", dest="pdf", action="store_true", help="Convert scanned image into PDF afterwards.")
     parser.add_argument("--quality", dest="quality", type=int, default=90, help="JPEG quality in %% [default: %(default)s].")
     parser.add_argument("--resolution", dest="resolution", type=int, default=300, help="Scan resolution")
