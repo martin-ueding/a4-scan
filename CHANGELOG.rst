@@ -4,6 +4,12 @@
 CHANGELOG
 #########
 
+v2.2
+    - Remove ``.tiff`` file once the conversion into ``.jpg`` succeeded.
+    - Name images with ISO date instead of number. That way, one can already
+      work with images in the folder without the program filling in the gaps
+      with new images.
+
 v2.1.3
     - Add GPL ``copying.rst``
 
@@ -25,3 +31,5 @@ v1.1
 
 v1.0
     - Initial release
+
+.. vim: spell
