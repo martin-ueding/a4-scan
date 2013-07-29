@@ -67,12 +67,15 @@ def scan(options):
     filename = next_name(options)
     command = [
         "scanimage",
-        "--format=tiff",
-        "--mode={mode}".format(mode="color" if options.color else "gray"),
+        "--format", "tiff",
+        "--mode", "color" if options.color else "gray",
         "--resolution={resolution}".format(resolution=resolution),
         "-x 210",
         "-y 297",
     ]
+
+    if options.feeder:
+        command += ["--source", "Automatic Document Feeder"]
 
     global _printed_command
 
@@ -191,6 +194,7 @@ def _parse_args():
     """
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--color", dest="color", action="store_true", help="Switch to color")
+    parser.add_argument("--feeder", dest="feeder", action="store_true", help="Use automatic document feeder")
     parser.add_argument("--factor", dest="factor", type=int, default=2, help="Oversampling factor [default: %(default)s]")
     parser.add_argument("--level", dest="level", type=str, default="9%,85%", help="Level option for ``convert -level`` [default: %(default)s]")
     parser.add_argument("-s", "--oversample", dest="oversample", action="store_true", help="Will scan with twice the resolution and rescale the image for better results. This also activates ``--postprocess``.")
