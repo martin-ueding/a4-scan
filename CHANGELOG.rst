@@ -4,6 +4,9 @@
 CHANGELOG
 #########
 
+v2.3
+    - Support for document feeder
+
 v2.2
     - Remove ``.tiff`` file once the conversion into ``.jpg`` succeeded.
     - Name images with ISO date instead of number. That way, one can already
