@@ -2,6 +2,13 @@
 
 all: a4-scan.1.gz
 
+.PHONY: clean
+clean:
+	$(RM) *.1.gz
+	$(RM) *.class *.jar
+
+distclean: clean
+
 install:
 	install -d "$(DESTDIR)/usr/bin"
 	install a4-scan -t "$(DESTDIR)/usr/bin"
@@ -13,8 +20,3 @@ install:
 
 %.1.gz: %.1
 	gzip $<
-
-.PHONY: clean
-clean:
-	$(RM) *.1.gz
-	$(RM) *.class *.jar
