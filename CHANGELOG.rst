@@ -6,6 +6,7 @@ CHANGELOG
 
 v2.3
     - Support for document feeder
+    - Add ``make distclean``
 
 v2.2
     - Remove ``.tiff`` file once the conversion into ``.jpg`` succeeded.
