@@ -3,10 +3,10 @@
 
 # Copyright © 2012-2013 Martin Ueding <dev@martin-ueding.de>
 
-"""
+'''
 Wrapper for ``scanimage`` that recovers from glitches, automatically numbers
 file and can do some post processing.
-"""
+'''
 
 import argparse
 import datetime
@@ -17,15 +17,15 @@ import subprocess
 import sys
 import threading
 
-__docformat__ = "restructuredtext en"
+__docformat__ = 'restructuredtext en'
 
 _printed_command = False
-"""
+'''
 Whether the command was already printed out. This is just for use within this
 module.
 
 :type: bool
-"""
+'''
 
 def main():
     options = _parse_args()
@@ -37,7 +37,7 @@ def main():
             scan(options)
 
 def next_name(options):
-    """
+    '''
     Generates the next file name. It will increase the number until there is no
     file named like that. That will, it will choose the lowest possible number
     at all times.
@@ -46,12 +46,12 @@ def next_name(options):
 
     :return: Next file name.
     :rtype: str
-    """
+    '''
     d = datetime.datetime.now()
-    return "Scan-{}.tiff".format(d.isoformat("T"))
+    return 'Scan-{}.tiff'.format(d.isoformat('T'))
 
 def scan(options):
-    """
+    '''
     Builds the scan command line, asks the user and performs the scan. It will
     handle errors from the ``scanimage`` command.
 
@@ -60,28 +60,28 @@ def scan(options):
         - resolution (int)
     :type options: Namespace
     :rtype: None
-    """
+    '''
     # Calculate the resolution to use.
     resolution = options.factor * options.resolution if options.oversample else options.resolution
 
     filename = next_name(options)
     command = [
-        "scanimage",
-        "--progress",
-        "--format", "tiff",
-        "--mode", "color" if options.color else "gray",
-        "--resolution={resolution}".format(resolution=resolution),
-        "-x 210",
-        "-y 297",
+        'scanimage',
+        '--progress',
+        '--format', 'tiff',
+        '--mode', 'color' if options.color else 'gray',
+        '--resolution={resolution}'.format(resolution=resolution),
+        '-x 210',
+        '-y 297',
     ]
 
     if options.feeder:
-        command += ["--source", "Automatic Document Feeder"]
+        command += ['--source', 'Automatic Document Feeder']
 
     global _printed_command
 
     if not _printed_command:
-        print("{command} > {filename}".format(
+        print('{command} > {filename}'.format(
             command=' '.join(command),
             filename=filename,
         ))
@@ -100,9 +100,9 @@ def scan(options):
             errors.append(e)
 
             if trial == 0:
-                print("Oops, there was a glitch. Trying again …")
+                print('Oops, there was a glitch. Trying again …')
             else:
-                print("Okay, no way to recover. Here are the errors:")
+                print('Okay, no way to recover. Here are the errors:')
                 for error in errors:
                     print(error)
         else:
@@ -112,7 +112,7 @@ def scan(options):
             break
 
 def run_scan(command, filename):
-    """
+    '''
     Runs the scan command.
 
 
@@ -121,18 +121,18 @@ def run_scan(command, filename):
     :param filename: Where to save the scanned file.
     :type filename: str
     :rtype: None
-    """
-    with open(filename, "w") as outfile:
+    '''
+    with open(filename, 'w') as outfile:
         subprocess.check_call(command, stdout=outfile)
 
 def ask():
-    """
+    '''
     Asks the user whether he wants to continue. If not, the program is exited
     right here.
-    """
+    '''
     try:
-        user_input = input("continue? [Y/n] ").strip()
-        if any([user_input == char for char in ["n", "N"]]):
+        user_input = input('continue? [Y/n] ').strip()
+        if any([user_input == char for char in ['n', 'N']]):
             sys.exit(0)
     except KeyboardInterrupt:
         # The user pressed CTRL-C, so we just quit here, leaving the terminal
@@ -141,43 +141,43 @@ def ask():
         sys.exit(0)
 
 class PostProcess(threading.Thread):
-    """
+    '''
     Thread to handle post processing in the background. That way, the user can
     scan the next image wihtout having to wait for ``convert`` to finish.
-    """
+    '''
     def __init__(self, filename, options):
-        """
+        '''
         :param filename: Filename of the original image
         :type filename: str
         :param options: Global program options
         :type options: Namespace
-        """
+        '''
         super().__init__()
         self.filename = filename
         self.options = options
 
     def run(self):
-        """
+        '''
         Applies post processing to a file. ``scanimage`` will produce TIFF files
         which I do not use a lit. I usually use JPEG or PDF files. This method will
         apply contrast levels and rescale the image.
-        """
+        '''
         # Build up the ``convert`` command.
-        command_parts = ["convert", self.filename]
+        command_parts = ['convert', self.filename]
 
         basename, ext = os.path.splitext(self.filename)
 
-        command_parts += ["-level", self.options.level]
+        command_parts += ['-level', self.options.level]
 
         if self.options.oversample:
-            command_parts += ["-resize", "{res}%".format(res=int(100/self.options.factor))]
+            command_parts += ['-resize', '{res}%'.format(res=int(100/self.options.factor))]
 
         if self.options.pdf:
-            outfile = "{basename}.pdf".format(basename=basename)
+            outfile = '{basename}.pdf'.format(basename=basename)
             command_parts += [outfile]
         else:
-            outfile = "{basename}.jpg".format(basename=basename)
-            command_parts += ["-quality", str(self.options.quality), outfile]
+            outfile = '{basename}.jpg'.format(basename=basename)
+            command_parts += ['-quality', str(self.options.quality), outfile]
 
         try:
             subprocess.check_call(command_parts)
@@ -187,25 +187,25 @@ class PostProcess(threading.Thread):
             shutil.remove(outfile)
 
 def _parse_args():
-    """
+    '''
     Parses the command line arguments.
 
     :return: Namespace with arguments.
     :rtype: Namespace
-    """
+    '''
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--color", dest="color", action="store_true", help="Switch to color")
-    parser.add_argument("--feeder", dest="feeder", action="store_true", help="Use automatic document feeder")
-    parser.add_argument("--factor", dest="factor", type=int, default=2, help="Oversampling factor [default: %(default)s]")
-    parser.add_argument("--level", dest="level", type=str, default="9%,85%", help="Level option for ``convert -level`` [default: %(default)s]")
-    parser.add_argument("-s", "--oversample", dest="oversample", action="store_true", help="Will scan with twice the resolution and rescale the image for better results. This also activates ``--postprocess``.")
-    parser.add_argument("-p", "--postprocess", dest="postprocess", action="store_true", help="Enable post processing")
-    parser.add_argument("--pdf", dest="pdf", action="store_true", help="Convert scanned image into PDF afterwards.")
-    parser.add_argument("--quality", dest="quality", type=int, default=90, help="JPEG quality in %% [default: %(default)s].")
-    parser.add_argument("--resolution", dest="resolution", type=int, default=300, help="Scan resolution")
-    parser.add_argument("-y", dest="yes", action="store_true", help="Scan a single document right away")
+    parser.add_argument('--color', dest='color', action='store_true', help='Switch to color')
+    parser.add_argument('--feeder', dest='feeder', action='store_true', help='Use automatic document feeder')
+    parser.add_argument('--factor', dest='factor', type=int, default=2, help='Oversampling factor [default: %(default)s]')
+    parser.add_argument('--level', dest='level', type=str, default='9%,85%', help='Level option for ``convert -level`` [default: %(default)s]')
+    parser.add_argument('-s', '--oversample', dest='oversample', action='store_true', help='Will scan with twice the resolution and rescale the image for better results. This also activates ``--postprocess``.')
+    parser.add_argument('-p', '--postprocess', dest='postprocess', action='store_true', help='Enable post processing')
+    parser.add_argument('--pdf', dest='pdf', action='store_true', help='Convert scanned image into PDF afterwards.')
+    parser.add_argument('--quality', dest='quality', type=int, default=90, help='JPEG quality in %% [default: %(default)s].')
+    parser.add_argument('--resolution', dest='resolution', type=int, default=300, help='Scan resolution')
+    parser.add_argument('-y', dest='yes', action='store_true', help='Scan a single document right away')
 
     return parser.parse_args()
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
