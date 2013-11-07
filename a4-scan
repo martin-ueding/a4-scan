@@ -29,8 +29,12 @@ module.
 :type: bool
 '''
 
+logger = logging.getLogger('a4-scan')
+
 def main():
     options = _parse_args()
+
+    logging.basicConfig(level=logging.DEBUG)
 
     if options.yes:
         scan(options)
@@ -83,20 +87,26 @@ def scan(options):
             '--source', 'Automatic Document Feeder',
         ]
 
+        filename = None
+
+        if not options.back:
+            command += [
+                '--batch=Scan-{}+%03d.tiff'.format(d.isoformat('T')),
+            ]
+
     if options.front:
         command += [
             '--batch-double',
-            '--batch', 'Scan-{}+%3d.tiff'.format(d.isoformat('T')),
         ]
 
     if options.back:
         scans = glob.glob('Scan-*+*.tiff')
         scans.sort()
-        print(scans)
+        logger.debug('Found scans: {}'.format(scans))
         latest = scans[-1]
-        print(latest)
+        logger.debug('Latest: {}'.format(latest))
 
-        pattern = re.compile(r'Scan-(.*)+(\d+)\.tiff')
+        pattern = re.compile(r'Scan-(.*)\+(\d+)\.tiff')
         m = pattern.match(latest)
         if m:
             latest_time = m.group(1)
@@ -105,8 +115,8 @@ def scan(options):
             logging.critical('Cannot find time and number')
 
         command += [
-            '--batch', 'Scan-{}-%3d.tiff'.format(latest_time),
-            '--batch-start', latest_number,
+            '--batch=Scan-{}+%03d.tiff'.format(latest_time),
+            '--batch-start', str(int(latest_number) + 1),
             '--batch-increment', '-2',
         ]
 
@@ -144,7 +154,7 @@ def scan(options):
                 thread.start()
             break
 
-def run_scan(command, filename):
+def run_scan(command, filename=None):
     '''
     Runs the scan command.
 
@@ -155,8 +165,11 @@ def run_scan(command, filename):
     :type filename: str
     :rtype: None
     '''
-    with open(filename, 'w') as outfile:
-        subprocess.check_call(command, stdout=outfile)
+    if filename is None:
+        subprocess.check_call(command)
+    else:
+        with open(filename, 'w') as outfile:
+            subprocess.check_call(command, stdout=outfile)
 
 def ask():
     '''
@@ -229,8 +242,8 @@ def _parse_args():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--color', dest='color', action='store_true', help='Switch to color')
     parser.add_argument('--feeder', dest='feeder', action='store_true', help='Use automatic document feeder')
-    parser.add_argument('--front', dest='feeder', action='store_true', help='Scan the front of double sided document')
-    parser.add_argument('--back', dest='feeder', action='store_true', help='Scan the back of double sided document')
+    parser.add_argument('--front', dest='front', action='store_true', help='Scan the front of double sided document')
+    parser.add_argument('--back', dest='back', action='store_true', help='Scan the back of double sided document')
     parser.add_argument('--factor', dest='factor', type=int, default=2, help='Oversampling factor [default: %(default)s]')
     parser.add_argument('--level', dest='level', type=str, default='9%,85%', help='Level option for ``convert -level`` [default: %(default)s]')
     parser.add_argument('-s', '--oversample', dest='oversample', action='store_true', help='Will scan with twice the resolution and rescale the image for better results. This also activates ``--postprocess``.')
