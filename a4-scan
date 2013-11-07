@@ -77,8 +77,9 @@ def scan(options):
         filename = None
 
         if not options.back:
+            name_format = 'Scan-{}+%03d.tiff'.format(d.isoformat('T'))
             command += [
-                '--batch=Scan-{}+%03d.tiff'.format(d.isoformat('T')),
+                '--batch={}'.format(name_format),
             ]
 
     if options.front:
@@ -101,10 +102,17 @@ def scan(options):
         else:
             logging.critical('Cannot find time and number')
 
+        name_format = 'Scan-{}+%03d.tiff'.format(latest_time)
+
         command += [
-            '--batch=Scan-{}+%03d.tiff'.format(latest_time),
+            '--batch={}'.format(name_format),
             '--batch-start', str(int(latest_number) + 1),
             '--batch-increment', '-2',
+        ]
+
+    if options.batch_count:
+        command += [
+            '--batch-count', str(options.batch_count)
         ]
 
 
@@ -137,7 +145,16 @@ def scan(options):
                     print(error)
         else:
             if options.postprocess or options.oversample:
-                thread = PostProcess(filename, options)
+                if filename is None:
+                    if options.front:
+                        filenames = []
+                    else:
+                        filenames = glob.glob(name_format.replace('%03d', '*'))
+                else:
+                    filenames = [filename]
+
+                logger.debug('Processing ' + str(filenames))
+                thread = PostProcess(filenames, options)
                 thread.start()
             break
 
@@ -160,7 +177,6 @@ def run_scan(command, filename=None):
                 subprocess.check_call(command, stdout=outfile)
     except KeyboardInterrupt:
         print()
-        sys.exit(50)
 
 def ask():
     '''
@@ -182,46 +198,47 @@ class PostProcess(threading.Thread):
     Thread to handle post processing in the background. That way, the user can
     scan the next image wihtout having to wait for ``convert`` to finish.
     '''
-    def __init__(self, filename, options):
+    def __init__(self, filenames, options):
         '''
-        :param filename: Filename of the original image
-        :type filename: str
+        :param filenames: Filenames of the original images
+        :type filenames: list
         :param options: Global program options
         :type options: Namespace
         '''
         super().__init__()
-        self.filename = filename
+        self.filenames = filenames
         self.options = options
 
     def run(self):
         '''
         Applies post processing to a file. ``scanimage`` will produce TIFF files
-        which I do not use a lit. I usually use JPEG or PDF files. This method will
+        which I do not use a lot. I usually use JPEG or PDF files. This method will
         apply contrast levels and rescale the image.
         '''
-        # Build up the ``convert`` command.
-        command_parts = ['convert', self.filename]
+        for filename in self.filenames:
+            # Build up the ``convert`` command.
+            command_parts = ['convert', filename]
 
-        basename, ext = os.path.splitext(self.filename)
+            basename, ext = os.path.splitext(filename)
 
-        command_parts += ['-level', self.options.level]
+            command_parts += ['-level', self.options.level]
 
-        if self.options.oversample:
-            command_parts += ['-resize', '{res}%'.format(res=int(100/self.options.factor))]
+            if self.options.oversample:
+                command_parts += ['-resize', '{res}%'.format(res=int(100/self.options.factor))]
 
-        if self.options.pdf:
-            outfile = '{basename}.pdf'.format(basename=basename)
-            command_parts += [outfile]
-        else:
-            outfile = '{basename}.jpg'.format(basename=basename)
-            command_parts += ['-quality', str(self.options.quality), outfile]
+            if self.options.pdf:
+                outfile = '{basename}.pdf'.format(basename=basename)
+                command_parts += [outfile]
+            else:
+                outfile = '{basename}.jpg'.format(basename=basename)
+                command_parts += ['-quality', str(self.options.quality), outfile]
 
-        try:
-            subprocess.check_call(command_parts)
-            os.unlink(self.filename)
-        except subprocess.CalledProcessError as e:
-            print(e)
-            shutil.remove(outfile)
+            try:
+                subprocess.check_call(command_parts)
+                os.unlink(filename)
+            except subprocess.CalledProcessError as e:
+                print(e)
+                shutil.remove(outfile)
 
 def _parse_args():
     '''
@@ -236,6 +253,7 @@ def _parse_args():
     parser.add_argument('--front', dest='front', action='store_true', help='Scan the front of double sided document')
     parser.add_argument('--back', dest='back', action='store_true', help='Scan the back of double sided document')
     parser.add_argument('--factor', dest='factor', type=int, default=2, help='Oversampling factor [default: %(default)s]')
+    parser.add_argument('--batch-count', dest='batch_count', type=int)
     parser.add_argument('--level', dest='level', type=str, default='9%,85%', help='Level option for ``convert -level`` [default: %(default)s]')
     parser.add_argument('-s', '--oversample', dest='oversample', action='store_true', help='Will scan with twice the resolution and rescale the image for better results. This also activates ``--postprocess``.')
     parser.add_argument('-p', '--postprocess', dest='postprocess', action='store_true', help='Enable post processing')
