@@ -165,11 +165,15 @@ def run_scan(command, filename=None):
     :type filename: str
     :rtype: None
     '''
-    if filename is None:
-        subprocess.check_call(command)
-    else:
-        with open(filename, 'w') as outfile:
-            subprocess.check_call(command, stdout=outfile)
+    try:
+        if filename is None:
+            subprocess.check_call(command)
+        else:
+            with open(filename, 'w') as outfile:
+                subprocess.check_call(command, stdout=outfile)
+    except KeyboardInterrupt:
+        print()
+        sys.exit(50)
 
 def ask():
     '''
