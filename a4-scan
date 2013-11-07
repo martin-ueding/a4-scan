@@ -67,6 +67,7 @@ def scan(options):
     filename = next_name(options)
     command = [
         "scanimage",
+        "--progress",
         "--format", "tiff",
         "--mode", "color" if options.color else "gray",
         "--resolution={resolution}".format(resolution=resolution),
