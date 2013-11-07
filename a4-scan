@@ -11,8 +11,10 @@ file and can do some post processing.
 import argparse
 import datetime
 import os
+import logging
 import os.path
 import re
+import glob
 import subprocess
 import sys
 import threading
@@ -76,7 +78,38 @@ def scan(options):
     ]
 
     if options.feeder:
-        command += ['--source', 'Automatic Document Feeder']
+        d = datetime.datetime.now()
+        command += [
+            '--source', 'Automatic Document Feeder',
+        ]
+
+    if options.front:
+        command += [
+            '--batch-double',
+            '--batch', 'Scan-{}+%3d.tiff'.format(d.isoformat('T')),
+        ]
+
+    if options.back:
+        scans = glob.glob('Scan-*+*.tiff')
+        scans.sort()
+        print(scans)
+        latest = scans[-1]
+        print(latest)
+
+        pattern = re.compile(r'Scan-(.*)+(\d+)\.tiff')
+        m = pattern.match(latest)
+        if m:
+            latest_time = m.group(1)
+            latest_number = m.group(2)
+        else:
+            logging.critical('Cannot find time and number')
+
+        command += [
+            '--batch', 'Scan-{}-%3d.tiff'.format(latest_time),
+            '--batch-start', latest_number,
+            '--batch-increment', '-2',
+        ]
+
 
     global _printed_command
 
@@ -196,6 +229,8 @@ def _parse_args():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--color', dest='color', action='store_true', help='Switch to color')
     parser.add_argument('--feeder', dest='feeder', action='store_true', help='Use automatic document feeder')
+    parser.add_argument('--front', dest='feeder', action='store_true', help='Scan the front of double sided document')
+    parser.add_argument('--back', dest='feeder', action='store_true', help='Scan the back of double sided document')
     parser.add_argument('--factor', dest='factor', type=int, default=2, help='Oversampling factor [default: %(default)s]')
     parser.add_argument('--level', dest='level', type=str, default='9%,85%', help='Level option for ``convert -level`` [default: %(default)s]')
     parser.add_argument('-s', '--oversample', dest='oversample', action='store_true', help='Will scan with twice the resolution and rescale the image for better results. This also activates ``--postprocess``.')
