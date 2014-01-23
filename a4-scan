@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-# Copyright © 2012-2013 Martin Ueding <dev@martin-ueding.de>
+# Copyright © 2012-2014 Martin Ueding <dev@martin-ueding.de>
 
 '''
 Wrapper for ``scanimage`` that recovers from glitches, automatically numbers
@@ -77,6 +77,9 @@ def scan(options):
 
     if options.feeder:
         command += ['--source', 'Automatic Document Feeder']
+
+    if options.device:
+        command += ['--device-name', options.device]
 
     global _printed_command
 
@@ -204,6 +207,7 @@ def _parse_args():
     parser.add_argument('--quality', dest='quality', type=int, default=90, help='JPEG quality in %% [default: %(default)s].')
     parser.add_argument('--resolution', dest='resolution', type=int, default=300, help='Scan resolution')
     parser.add_argument('-y', dest='yes', action='store_true', help='Scan a single document right away')
+    parser.add_argument('-d', dest='device', help='Set a device.')
 
     return parser.parse_args()
 
