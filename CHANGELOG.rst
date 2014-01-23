@@ -1,8 +1,12 @@
-.. Copyright © 2013 Martin Ueding <dev@martin-ueding.de>
+.. Copyright © 2013-2014 Martin Ueding <dev@martin-ueding.de>
 
 #########
 CHANGELOG
 #########
+
+v2.4
+    - Add support for the device name
+    - Add ``scanimage`` progress indicator
 
 v2.3
     - Support for document feeder
