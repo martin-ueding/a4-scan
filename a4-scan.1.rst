@@ -6,7 +6,7 @@ a4-scan
 Wrapper for ``scanimage``
 *************************
 
-:Author: Martin Ueding <dev@martin-ueding.de>
+:Author: Martin Ueding <martin-ueding.de>
 :Date: 2013-04-14
 :Manual section: 1
 

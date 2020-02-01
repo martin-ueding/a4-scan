@@ -1,4 +1,4 @@
-# Copyright © 2012-2013 Martin Ueding <dev@martin-ueding.de>
+# Copyright © 2012-2013 Martin Ueding <martin-ueding.de>
 
 all: a4-scan.1.gz
 
